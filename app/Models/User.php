@@ -47,22 +47,4 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
-    // public function setPasswordAttribute($value)
-    // {
-    //     $this->attributes['password'] = bcrypt($value);
-    // }
-
-    // public function setPrivateKeyAttribute($value)
-    // {
-    //     // $keys = (new KeyPair())->generate();
-
-    //     // $private = PrivateKey::fromString($keys[0]);
-
-    //     // $public = PublicKey::fromString($keys[1]);
-
-    //     // $this->attributes['private_key'] = $private;
-
-    //     // $this->attributes['public_key'] = $public;
-    // }
 }

@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Repositories\BlockRepository;
 use App\Repositories\PairKeysRepository;
-use App\Repositories\PendingTransactionRepository;
 
 use Spatie\Crypto\Rsa\KeyPair;
 use Spatie\Crypto\Rsa\PrivateKey;
@@ -23,15 +22,10 @@ class BlockChainController extends Controller
 
     public $pairkeysRepository;
 
-    public $pendingTransactionRepository;
 
-    public function __construct(BlockRepository $blockRepository , PairKeysRepository $pairkeysRepository , PendingTransactionRepository $pendingTransactionRepository )
+    public function __construct(BlockRepository $blockRepository  )
     {
         $this->blockRepository = $blockRepository;
-
-        $this->pairkeysRepository = $pairkeysRepository;
-
-        $this->pendingTransactionRepository = $pendingTransactionRepository;
     }
     /**
      * Display a listing of the resource.
@@ -40,6 +34,9 @@ class BlockChainController extends Controller
      */
     public function index()
     {
+        $block_ids = BlockChain::pluck('block_id'); 
+        // return 
+        dd($block_ids);
         return $this->blockRepository->getLastBlock();
     }
 
@@ -58,58 +55,18 @@ class BlockChainController extends Controller
      */
     public function addBlock(Request $request)
     {
-
-        // $data = "test";
-        // $keys = (new KeyPair())->generate();
-        // return $keys;
+        // return $request['public_key'];
 
         $private = PrivateKey::fromString($request['private_key']);
         
         $public = PublicKey::fromString($request['public_key']);
 
+
         $signature = $private->encrypt($request['amount']);
 
         return $public->decrypt($signature); // returns true;
 
-
-        // $decryptedData = $public->decrypt($encryptedData);
-        return $request['private_key'];
-
-        $hi = $request->from; 
-
-        return($request->user);
-
-        return $this->pendingTransactionRepository->addPendingTransactions( $request);
-
-        $this->blockRepository->createGenesisBlock();
-
-        $request = $request->validate([
-            'amount' => 'required|numeric',
-            'to' => 'required|array',
-            'to.*' => 'required|string',
-        ]);
-
-        // $data = $request->all();
-
-        return $request;
-
-        $prev_block = $this->blockRepository->getLastBlock();
-
-        $new_block = new Block($data);
-        
-        $hash = $this->blockRepository->calculatHash($new_block);
-        
-        $new_block->hash = $hash;
-        
-        $new_block->prev_hash = $prev_block->hash;
-        
-        $new_block->save();
-        
-        BlockChain::create([
-            'block_id' => $new_block->id
-        ]);
-
-        return Block::all();
+        return $signature;
     }
 
     /**

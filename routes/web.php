@@ -19,19 +19,18 @@ Route::get('/', function () {
 
 Auth::routes();
 
+Route::group(['namespace' => 'App\Http\Controllers'], function ($router) {
 
-Auth::routes();
+    Route::get('/home', 'BlockChainController@index')->name('home');
+    
+    Route::get('/profile' , 'UserController@getProfile')->name('profile');
 
-// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+    Route::group(['prefix' => 'transactions'] , function ($router) {
 
-Route::get('/test', 'App\Http\Controllers\TransactionController@create');
+        Route::get('create', 'TransactionController@create')->name('transactions.create');
 
+        Route::post('add-transaction', 'TransactionController@addTransaction')->name('transactions.add');
+    });
 
-Route::post('transactions/add-transaction', 'App\Http\Controllers\TransactionController@addTransaction')->name('transactions.add');
-
-
-
-
-
-
-
+    Route::get('/blocks/{id}', 'BlockController@show')->name('home');
+});

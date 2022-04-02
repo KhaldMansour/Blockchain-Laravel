@@ -30,6 +30,31 @@ class BlockRepository
         }
     }
 
+    public function addBlock($block)
+    {
+        $this->createGenesisBlock();
+
+        $prev_block = $this->getLastBlock();
+        
+        $hash = $this->calculateHash($block);
+        
+        $block->hash = $hash;
+        
+        $block->prev_hash = $prev_block->hash;
+        
+        
+        if ($this->isValidBlock($block))
+        {
+            $block->is_valid = true;
+
+            BlockChain::create([
+                'block_id' => $block->id
+                ]);
+        }
+            
+        $block->save();
+    }
+
     public function calculateHash($block)
     {
         $data = serialize($block->transactions) . $block->created_at . $block->updated_at;

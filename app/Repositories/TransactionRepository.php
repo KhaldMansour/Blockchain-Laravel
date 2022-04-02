@@ -5,7 +5,7 @@ namespace App\Repositories;
 use App\Models\Block;
 use App\Models\BlockChain;
 use App\Models\Transaction;
-use App\Models\PendingTransaction;
+use App\Repositories\BlockRepository;
 
 use Hash;
 
@@ -15,17 +15,28 @@ use Spatie\Crypto\Rsa\PublicKey;
 
 class TransactionRepository
 {
+
+    public $blockRepository;
+
+    public function __construct(BlockRepository $blockRepository)
+    {
+        $this->blockRepository = $blockRepository;
+    }
+
+
     public function addTransactions($request)
     {
         $addresses = json_decode($request->tos);
 
         $amount = $request['amount'] / count($addresses);
 
-        $keys =[ $request['private_key'] , $request['from']];
+        $keys =[ 
+            trim( str_replace( "\\n" , "\n" , $request['private_key'])  , "\n")
+            , 
+             trim( str_replace( "\\n" , "\n" , $request['from']) , "\n") 
+            ];
 
         $block = Block::create();
-
-        // var_dump($block);
 
         foreach ($addresses as $address)
         {
@@ -37,11 +48,11 @@ class TransactionRepository
 
             $signature = $this->signTransaction($transaction , $keys);
 
-            var_dump($signature);
-
             $transaction->signature = $signature;
 
             $block->transactions()->save($transaction);
+
+            $this->blockRepository->addBlock($block);
         }
     }
 
@@ -49,24 +60,13 @@ class TransactionRepository
     {
         $transaction_hash = $this->calculateHash($transaction);
         
-        // var_dump($private);
+        $public = PublicKey::fromString(trim( str_replace( "\\n" , "\n" , $keys[1])  , "\n") );
 
-        $private = PrivateKey::fromString($keys[0]);
-
-        $public = PublicKey::fromString($keys[1]);
-
-
-        // dd($private)
+        $private = PrivateKey::fromString(trim( str_replace( "\\n" , "\n" , $keys[0]) ) , "\n");
 
         $signature = $private->sign($transaction_hash);
 
-        // var_dump($encryptedData);
-
-        // $transaction->signature = $encryptedData;
-
         return $signature;
-
-        // return $public->verify($transaction_hash , $encryptedData);
     }
 
     public function calculateHash($transaction)
@@ -80,16 +80,32 @@ class TransactionRepository
 
     public function isValid($request)
     {
-        if ($request['from'] != auth()->user()->public_key)
+        $keyss =[ 
+             str_replace( "\\n" , "\n" , $request['private_key'])  
+            , 
+              str_replace( "\\n" , "\n" , $request['from']) 
+        ];
+
+        $keys = [
+            str_replace( "\r" , "" , $keyss[0])  
+            , 
+            str_replace( "\r" , "" , $keyss[1])  
+        ];
+
+        //check for user's public key
+        if ($keys[1] !=  trim ( auth()->user()->public_key , "\n") )
         {
+            dd($keys[1] , auth()->user()->public_key );
             return false;
         }
 
-        if ($request['private_key'] != auth()->user()->private_key)
+        //check for user's private key
+        if ($keys[0] != trim ( auth()->user()->private_key , "\n"))
         {
             return false;
         }
         
+        //heck for user's balance
         if ($request['amount'] > auth()->user()->balance)
         {
             return false;

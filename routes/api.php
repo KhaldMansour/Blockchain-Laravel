@@ -15,18 +15,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['namespace' => 'App\Http\Controllers\API'], function ($router) {
-
     Route::group(['prefix' => 'blockchain'] , function ($router) {
         
         Route::get('', 'BlockChainController@index');
 
         Route::post('add-block', 'BlockChainController@addBlock');
-    });
-
-    Route::group(['prefix' => 'transactions'] , function ($router) {
-        
-        // Route::get('', 'BlockChainController@index');
-
-        // Route::post('add-transaction', 'TransactionController@addTransaction')->name('transactions.add');
     });
 });

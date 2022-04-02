@@ -26,27 +26,20 @@
 
         <input id="tos" name="tos" type="hidden" class="form-control" placeholder="Type an address">
 
-        <button type="button" name="button" onclick="addAddress()">Send</button>
+        <button type="button" name="button" class="btn btn-primary form-control" onclick="addAddress()">Add Address</button>
 
 
         <label for="private_key">Private Key</label>
         <textarea id="private_key" name="private_key" type="text" class="form-control" placeholder="Don't share your private key with anyone"></textarea>
 
-        <button type="submit" class="btn btn-primary submit"> Add Transaction </button>
+        <button id="execute-button" type="submit" class="btn btn-primary submit" disabled> Execute Transactions </button>
     </form>
 
     <h3>Addresses<h3>
     <ul class="addresses" > </ul>
 
     <h3>Amount shared between transactions<h3>
-    <h1 class="amount-shared"> </h1>
-
-    <form name="execute-transactions" method="POST" action="transactions/add-transaction">
-        @csrf
-        <button id= "execute-button" type="submit" class="btn btn-primary submit" disabled> Execute Transactions </button>
-    </form>
-
-
+    <h1 id ="amount-shared" class="amount-shared"> </h1>
 
 
 
@@ -64,15 +57,26 @@
 
             function addAddress()
             {
-                
-                
-                
                 tos.push(document.getElementById('to').value);
                 
                 document.getElementById('tos').value = JSON.stringify(tos);
                 
                 $.trim($("#to").val());
-                
+
+                 if(tos.length > 0){
+                    $("#execute-button").removeAttr('disabled');
+                }
+
+                $( ".addresses" ).append(
+                    '<li>' + tos[tos.length - 1] + '</li>'
+                )
+
+                amount = document.getElementById('amount').value / (tos.length);
+        
+                document.getElementById('amount-shared').innerHTML = (amount);
+
+
+                    
                 // console.log( {{ auth()->user()->name }});
                 // console.log( $("#tos").val() , JSON.stringify(tos))
                 // amount = $.trim( $("#amount").val()) / (tos.length);
